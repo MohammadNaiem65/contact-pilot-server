@@ -31,6 +31,18 @@ async function run() {
 		const contactsCollection = db.collection('contacts');
 		const usersCollection = db.collection('users');
 
+		app.get('/', (req, res) => {
+			res.send('Welcome to Contact Pilot api!');
+		});
+
+		// * Users collection
+		app.post('/api/users', async (req, res) => {
+			const userData = req.body;
+
+			const result = await usersCollection.insertOne(userData);
+			res.send(result);
+		});
+
 		// Send a ping to confirm a successful connection
 		await client.db('admin').command({ ping: 1 });
 		console.log(
