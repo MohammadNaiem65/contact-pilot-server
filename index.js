@@ -35,7 +35,7 @@ async function run() {
 			res.send('Welcome to Contact Pilot api!');
 		});
 
-		// * Users collection
+		// * Users related API's
 		app.post('/api/users', async (req, res) => {
 			const userData = req.body;
 
@@ -43,7 +43,7 @@ async function run() {
 			res.send(result);
 		});
 
-		// * Contacts collection
+		// * Contacts related API's
 		app.get('/api/contacts', async (req, res) => {
 			const result = await contactsCollection
 				.find({ userId: req.query.userId })
@@ -55,6 +55,31 @@ async function run() {
 			const contactsData = req.body;
 
 			const result = await contactsCollection.insertOne(contactsData);
+			res.send(result);
+		});
+
+		app.get('/api/contacts/:id', async (req, res) => {
+			const _id = new ObjectId(req.params.id);
+
+			const result = await contactsCollection.findOne({ _id });
+			res.send(result);
+		});
+
+		app.put('/api/contacts/:id', async (req, res) => {
+			const _id = new ObjectId(req.params.id);
+			const updatedContactData = req.body;
+
+			const result = await contactsCollection.replaceOne(
+				{ _id },
+				updatedContactData
+			);
+			res.send(result);
+		});
+
+		app.delete('/api/contacts/:id', async (req, res) => {
+			const _id = new ObjectId(req.params.id);
+
+			const result = await contactsCollection.deleteOne({ _id });
 			res.send(result);
 		});
 
