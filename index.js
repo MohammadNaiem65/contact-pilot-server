@@ -43,6 +43,21 @@ async function run() {
 			res.send(result);
 		});
 
+		// * Contacts collection
+		app.get('/api/contacts', async (req, res) => {
+			const result = await contactsCollection
+				.find({ userId: req.query.userId })
+				.toArray();
+			res.send(result);
+		});
+
+		app.post('/api/contacts', async (req, res) => {
+			const contactsData = req.body;
+
+			const result = await contactsCollection.insertOne(contactsData);
+			res.send(result);
+		});
+
 		// Send a ping to confirm a successful connection
 		await client.db('admin').command({ ping: 1 });
 		console.log(
