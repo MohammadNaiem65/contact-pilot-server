@@ -36,6 +36,13 @@ async function run() {
 		});
 
 		// * Users related API's
+		app.get('/api/users/:id', async (req, res) => {
+			const _id = new ObjectId(req.params.id);
+
+			const result = await usersCollection.findOne({ _id });
+			res.send(result);
+		});
+
 		app.post('/api/users', async (req, res) => {
 			const userData = req.body;
 
