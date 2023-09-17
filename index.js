@@ -66,11 +66,38 @@ async function run() {
 			res.send(result);
 		});
 
-		app.get('/api/contacts/10/', async (req, res) => {
+		app.get('/api/contacts/10', async (req, res) => {
 			const result = await contactsCollection
 				.find({ userEmail: req.query.email })
 				.sort({ _id: -1 })
 				.limit(10)
+				.toArray();
+
+			res.send(result);
+		});
+
+		app.get('/api/contacts/name', async (req, res) => {
+			const result = await contactsCollection
+				.find({ userEmail: req.query.email })
+				.sort({ name: 1 })
+				.toArray();
+
+			res.send(result);
+		});
+
+		app.get('/api/contacts/date', async (req, res) => {
+			const result = await contactsCollection
+				.find({ userEmail: req.query.email })
+				.sort({ _id: -1 })
+				.toArray();
+
+			res.send(result);
+		});
+
+		app.get('/api/contacts/email', async (req, res) => {
+			const result = await contactsCollection
+				.find({ userEmail: req.query.email })
+				.sort({ email: 1 })
 				.toArray();
 
 			res.send(result);
