@@ -7,6 +7,7 @@ require('dotenv').config();
 // ! Required variables
 const app = express();
 const port = 5000;
+// ? TODO: Create MONGODB_URI in the local variable file
 const uri = process.env.MONGODB_URI;
 
 // ! Middlewares
@@ -22,10 +23,10 @@ const client = new MongoClient(uri, {
 	},
 });
 
-async function run() {
+function run() {
 	try {
 		// Connect the client to the server
-		await client.connect();
+		client.connect();
 		const db = client.db('contactPilot');
 
 		// ! Database collections
@@ -188,7 +189,7 @@ async function run() {
 		res.status(500).send('Internal Server Error');
 	}
 }
-run().catch(console.dir);
+run();
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`);
