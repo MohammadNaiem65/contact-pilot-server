@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const excel = require('exceljs');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -28,8 +29,8 @@ async function run() {
 		const db = client.db('contactPilot');
 
 		// ! Database collections
-		const contactsCollection = db.collection('contacts');
 		const usersCollection = db.collection('users');
+		const contactsCollection = db.collection('contacts');
 
 		app.get('/', (req, res) => {
 			res.send('Welcome to Contact Pilot api!');
@@ -103,11 +104,45 @@ async function run() {
 			res.send(result);
 		});
 
-		app.post('/api/contacts', async (req, res) => {
-			const contactsData = req.body;
+		app.get('/api/contacts/download', async (req, res) => {
+			const userEmail = req.query.email;
 
-			const result = await contactsCollection.insertOne(contactsData);
-			res.send(result);
+			// const user = await usersCollection.findOne({ email: userEmail });
+			const contacts = await contactsCollection
+				.find({
+					userEmail: userEmail,
+				})
+				.toArray();
+
+			const workbook = new excel.Workbook();
+			const worksheet = workbook.addWorksheet('Contacts Data');
+
+			worksheet.columns = [
+				{ header: 'Name', key: 'name', width: 25 },
+				{ header: 'Phone', key: 'phone', width: 25 },
+				{ header: 'Email', key: 'email', width: 40 },
+			];
+
+			contacts.forEach((contact) => {
+				worksheet.addRow({
+					name: contact.name,
+					phone: contact.phone,
+					email: contact.email,
+				});
+			});
+
+			res.setHeader(
+				'Content-Type',
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			);
+			res.setHeader(
+				'Content-Disposition',
+				'attachment; filename=' + 'contacts_data.xlsx'
+			);
+
+			return workbook.xlsx.write(res).then(() => {
+				res.status(200).end();
+			});
 		});
 
 		app.get('/api/contacts/contact', async (req, res) => {
@@ -121,6 +156,13 @@ async function run() {
 			const _id = new ObjectId(req.params.id);
 
 			const result = await contactsCollection.findOne({ _id });
+			res.send(result);
+		});
+
+		app.post('/api/contacts', async (req, res) => {
+			const contactsData = req.body;
+
+			const result = await contactsCollection.insertOne(contactsData);
 			res.send(result);
 		});
 
