@@ -12,7 +12,7 @@ const uri = process.env.MONGODB_URI;
 app.use(express.json());
 app.use(cors());
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+// Create a MongoClient
 const client = new MongoClient(uri, {
 	serverApi: {
 		version: ServerApiVersion.v1,
@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
 	try {
-		// Connect the client to the server	(optional starting in v4.7)
+		// Connect the client to the server
 		await client.connect();
 		const db = client.db('contactPilot');
 
@@ -36,25 +36,43 @@ async function run() {
 		});
 
 		// * Users related API's
-		app.get('/api/users/:id', async (req, res) => {
-			const _id = new ObjectId(req.params.id);
+		app.get('/api/users', async (req, res) => {
+			const result = await usersCollection.findOne({
+				email: req.query.email,
+				password: req.query.password,
+			});
 
-			const result = await usersCollection.findOne({ _id });
 			res.send(result);
 		});
 
 		app.post('/api/users', async (req, res) => {
 			const userData = req.body;
+			const email = userData.email;
 
-			const result = await usersCollection.insertOne(userData);
+			const result = await usersCollection.updateOne(
+				{ email },
+				{ $set: userData },
+				{ upsert: true }
+			);
+
 			res.send(result);
 		});
 
 		// * Contacts related API's
 		app.get('/api/contacts', async (req, res) => {
 			const result = await contactsCollection
-				.find({ userId: req.query.userId })
+				.find({ userEmail: req.query.email })
 				.toArray();
+			res.send(result);
+		});
+
+		app.get('/api/contacts/10/', async (req, res) => {
+			const result = await contactsCollection
+				.find({ userEmail: req.query.email })
+				.sort({ _id: -1 })
+				.limit(10)
+				.toArray();
+
 			res.send(result);
 		});
 
@@ -62,6 +80,13 @@ async function run() {
 			const contactsData = req.body;
 
 			const result = await contactsCollection.insertOne(contactsData);
+			res.send(result);
+		});
+
+		app.get('/api/contacts/contact', async (req, res) => {
+			const result = await contactsCollection.findOne({
+				name: req.query.name,
+			});
 			res.send(result);
 		});
 
@@ -89,14 +114,9 @@ async function run() {
 			const result = await contactsCollection.deleteOne({ _id });
 			res.send(result);
 		});
-
-		// Send a ping to confirm a successful connection
-		await client.db('admin').command({ ping: 1 });
-		console.log(
-			'Pinged your deployment. You successfully connected to MongoDB!'
-		);
 	} catch (error) {
 		console.log(`Error: ${error}`);
+		res.status(500).send('Internal Server Error');
 	}
 }
 run().catch(console.dir);
